@@ -73,39 +73,26 @@ def get_site_position(latitude,longitude,altitude = 0.0):
     lat = np.radians(latitude)
     lon = np.radians(longitude)
 
-    a,b,c = get_moon_radii()
+    radii = get_moon_radii()
+    radius = float(np.mean(radii)) + altitude
 
-    site = spice.georec(
-        lon,
-        lat,
-        altitude,
-        a,
-        (a-c) / a
-    )
+    x = radius * np.cos(lat) * np.cos(lon)
+    y = radius * np.cos(lat) * np.sin(lon)
+    z = radius * np.sin(lat)
 
-    return np.array(site, dtype = float)
+    return np.array([x, y, z], dtype=float)
 
 def get_local_up(latitude, longitude):
-    load_kernels()
     lat = np.radians(latitude)
     lon = np.radians(longitude)
 
-    a,b,c = get_moon_radii()
+    up = np.array([
+        np.cos(lat) * np.cos(lon),
+        np.cos(lat) * np.sin(lon),
+        np.sin(lat),
+    ], dtype=float)
 
-    x = np.cos(lat) * np.cos(lon)
-    y = np.cos(lat) * np.sin(lon)
-    z = np.sin(lat)
-
-    normal = np.array(
-        [
-            x / (a * a),
-            y / (b * b),
-            z / (c * c),
-        ],
-        dtype=float
-    )
-
-    return normalize(normal)
+    return normalize(up)
 
 def get_local_frame(latitude, longitude):
     # construcción del sistema de coordenadas.
@@ -141,7 +128,6 @@ def get_body_position(body, date):
         "NONE",
         MOON
     )
-
     return np.array(position, dtype = float)
 
 #ELEVACIÓN Y AZIMUT
